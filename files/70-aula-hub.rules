@@ -1,5 +1,15 @@
-# aula-hub-linux: give the logged-in user WebHID access to these devices only.
+# aula-hub-linux: give the logged-in user (uaccess) WebHID access to the
+# configuration interface of these devices only. Interface 0 (normal typing)
+# is left alone, so other programs can't read raw keystrokes through it.
+ACTION=="remove", GOTO="aula_hub_end"
+SUBSYSTEM!="hidraw", GOTO="aula_hub_end"
+
 # BY Tech Gaming Keyboard (AULA F75 / F87 family, wired)
-KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="258a", ATTRS{idProduct}=="010c", TAG+="uaccess"
+ATTRS{idVendor}=="258a", ATTRS{idProduct}=="010c", ENV{AULA_HUB_DEVICE}="1"
 # Compx 2.4G Wireless Receiver
-KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3554", ATTRS{idProduct}=="fa09", TAG+="uaccess"
+ATTRS{idVendor}=="3554", ATTRS{idProduct}=="fa09", ENV{AULA_HUB_DEVICE}="1"
+
+# Interface 1 carries the vendor configuration reports (usage page 0xFF00 / 0xFF02).
+ENV{AULA_HUB_DEVICE}=="1", ATTRS{bInterfaceNumber}=="01", TAG+="uaccess"
+
+LABEL="aula_hub_end"

@@ -22,6 +22,48 @@ On Ubuntu 24.04+, `kernel.apparmor_restrict_unprivileged_userns=1` blocks user
 namespaces. `--system` then installs an AppArmor profile that allows `userns` for the
 downloaded Electron binary and for `/usr/bin/unshare`.
 
+## Files and permissions
+
+Everything `install.sh` writes outside the project folder:
+
+| Path | When | What |
+|---|---|---|
+| `~/.local/share/aula-hub-linux/app/` | always | Patched app (originals kept as `*.orig`) |
+| `~/.local/share/aula-hub-linux/icons/` | always | App icons from the installer |
+| `~/.local/share/aula-hub-linux/electron/` | no system `electron40` | Official Electron 40.10.4 |
+| `~/.local/bin/aula-hub` | always | Launcher |
+| `~/.local/share/applications/aula-hub.desktop` | always | App-menu entry |
+| a `mktemp -d` folder | always | Scratch space, deleted on exit, even on failure |
+| `/etc/udev/rules.d/70-aula-hub.rules` | `--system` | Device access (below) |
+| `/etc/apparmor.d/aula-hub-linux` | `--system`, and only if `kernel.apparmor_restrict_unprivileged_userns=1` (Ubuntu 24.04+) | Allows user namespaces for the downloaded Electron and `/usr/bin/unshare` |
+
+The app itself stores its settings and logs in `~/.config/aula-hub/`.
+
+Every `sudo` call, all of them only with `--system`:
+
+```sh
+sudo install -m 644 files/70-aula-hub.rules /etc/udev/rules.d/70-aula-hub.rules
+sudo udevadm control --reload
+sudo udevadm trigger --subsystem-match=hidraw      # re-applies rules to hidraw devices
+sudo tee /etc/apparmor.d/aula-hub-linux            # Ubuntu 24.04+ only
+sudo apparmor_parser -r /etc/apparmor.d/aula-hub-linux   # Ubuntu 24.04+ only
+```
+
+**The udev rule** ([`files/70-aula-hub.rules`](../files/70-aula-hub.rules)) tags
+hidraw nodes with `uaccess`, so systemd-logind gives the user at the active seat an
+ACL on them. It sets no `MODE` or `GROUP`, so nothing becomes world-writable. It
+matches only:
+
+- USB `258a:010c` (keyboard) and `3554:fa09` (receiver)
+- **and** USB interface 1, the vendor configuration channel (usage page `0xFF00` /
+  `0xFF02`)
+
+Interface 0 is the normal typing channel. It's deliberately excluded, so other
+programs running as you can't read raw keystrokes through it. Because `idVendor` and
+`bInterfaceNumber` live on different parent devices (and one udev rule line can only
+match a single parent), the rule first marks the device with `ENV{AULA_HUB_DEVICE}`
+and then checks the interface.
+
 ## The patches
 
 1. **Device names** ([`hid-name-fix.js`](../patches/hid-name-fix.js)). Linux names HID
