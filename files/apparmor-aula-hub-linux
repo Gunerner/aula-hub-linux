@@ -1,0 +1,14 @@
+# aula-hub-linux: allow user namespaces (Ubuntu 24.04+ restricts them) for
+# Electron's sandbox and for `unshare`, which the launcher uses for offline mode.
+abi <abi/4.0>,
+include <tunables/global>
+
+profile aula-hub-electron "@ELECTRON@" flags=(unconfined) {
+  userns,
+  include if exists <local/aula-hub-electron>
+}
+
+profile aula-hub-unshare /usr/bin/unshare flags=(unconfined) {
+  userns,
+  include if exists <local/aula-hub-unshare>
+}

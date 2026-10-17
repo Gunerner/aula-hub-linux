@@ -1,112 +1,140 @@
-# aula-hub-linux
+# AULA Hub for Linux
 
-Run the official **AULA Hub** keyboard app natively on Linux. No Wine and no VM.
+Use the official **AULA Hub** keyboard app on Linux to change your keyboard's lighting
+effect, brightness and speed. No Windows, no Wine and no virtual machine needed.
 
-> **Unofficial.** Not affiliated with or endorsed by AULA. This repository contains
-> no AULA software: it patches the official installer on your machine. Use at your
-> own risk.
+> ⚠️ **Unofficial project.** Not made or supported by AULA. It does **not** include
+> AULA's app: you supply the official installer, and this project adapts it for Linux
+> on your own computer. Use at your own risk.
 
-AULA Hub is an Electron app that talks to the keyboard over WebHID, so it can run on
-Linux's Electron. Out of the box, though, it doesn't see the keyboard. When it does,
-settings fail with "Configuration table is incorrect". This project fixes both.
+## Will it work for me?
 
-## Tested hardware
+It's tested with this hardware:
 
-| Device | USB ID | Status |
+| Device | What Linux calls it | Status |
 |---|---|---|
-| BY Tech Gaming Keyboard (detected as AULA F75, uuid `0300000000cd`), wired | `258a:010c` | Lighting effect, brightness and speed work |
-| Compx 2.4G Wireless Receiver | `3554:fa09` | Detected; not tested with the keyboard in 2.4G mode |
+| AULA keyboard (F75 family), **wired** | `BY Tech Gaming Keyboard` (`258a:010c`) | ✅ Lighting effect, brightness and speed work |
+| AULA 2.4G USB receiver | `Compx 2.4G Wireless Receiver` (`3554:fa09`) | Detected, not tested yet |
 
-Tested on CachyOS (Arch) with KDE Wayland and Electron 40.10.
+To check your keyboard, open a terminal and run `lsusb`. You should see a line with
+`258a:010c` in it.
 
-**Not tested:** custom/per-key lighting and the color picker (they use a different
-write command), key remapping, macros and performance settings. Headset features
-(Windows-only C-Media service) and game integration don't work on Linux.
+Installs tested on Arch / CachyOS (used daily), Debian 12, Ubuntu 24.04 and Fedora 41.
+It should work on other distros from those families too: Linux Mint, Pop!_OS, Manjaro,
+EndeavourOS, Nobara and so on. You need a 64-bit Intel/AMD PC.
 
-## Requirements
+---
 
-- `electron40`, `7zip` (provides `7z`), `python`, `nodejs` + `npm` (for `npx`), `util-linux` (`unshare`)
-- The **AULA Hub 1.1.22** Windows installer, `Aula Hub Setup 1.1.22.exe`
-  (SHA-256 `3c03c0a1e53c72ad6ab95e7749dc40f62a6f18e40d7a07d993c5f2bd7d3b77c6`).
-  AULA's server no longer lists a download link for 1.1.22, so you need your own
-  copy. Other versions are rejected (see [Why 1.1.22](#why-1122)).
+## Install, step by step
 
-On Arch: `sudo pacman -S --needed electron40 7zip python nodejs npm`
+You'll paste a few commands into a **terminal**. Open one from your app menu (search
+for "Terminal"). To paste into a terminal, use **Ctrl + Shift + V**.
 
-## Install
+### Step 1: Install the tools it needs
 
+Pick the line for your Linux, paste it and press Enter. It asks for your password,
+and nothing is shown while you type it. That's normal.
+
+**Ubuntu, Linux Mint, Pop!_OS, Debian, Zorin, elementary** (anything that uses `apt`):
 ```sh
-./install.sh "/path/to/Aula Hub Setup 1.1.22.exe" --udev
+sudo apt update && sudo apt install -y 7zip python3 curl
+```
+On older versions where `7zip` isn't found (Debian 11, Ubuntu 22.04, Mint 21), use:
+```sh
+sudo apt update && sudo apt install -y p7zip-full python3 curl
 ```
 
-The script:
-
-1. Verifies the installer's checksum.
-2. Unpacks it with 7-Zip and `@electron/asar`. Nothing from the installer is executed.
-3. Applies the patches in [`patches/`](patches/) and installs to `~/.local/share/aula-hub-linux`.
-4. Adds an `aula-hub` launcher in `~/.local/bin` and an app-menu entry.
-5. With `--udev`, installs a udev rule (asks for sudo) that gives your user access to
-   **only** the two devices above. Without `--udev`, it prints the command to run.
-
-Uninstall: `./uninstall.sh`. App settings in `~/.config/aula-hub` are kept.
-
-## Use
-
+**Fedora, Nobara** (anything that uses `dnf`):
 ```sh
-aula-hub                 # offline (default)
-AULA_ONLINE=1 aula-hub   # allow network
+sudo dnf install -y p7zip p7zip-plugins python3 curl
 ```
 
-The launcher runs the app in a private network namespace with no network access.
-The app then can't download firmware or remote UI updates, while keyboard settings
-still work because they go over USB.
+**Arch, CachyOS, Manjaro, EndeavourOS** (anything that uses `pacman`):
+```sh
+sudo pacman -S --needed 7zip python curl electron40
+```
 
-**Never use the firmware/version page.** These patches were only verified for
-settings writes, never for firmware.
+### Step 2: Get the AULA Hub 1.1.22 installer
 
-## What the patches fix
+You need the Windows installer file **`Aula Hub Setup 1.1.22.exe`**. Put it in your
+**Downloads** folder.
 
-1. **Device names** ([`patches/hid-name-fix.js`](patches/hid-name-fix.js)).
-   Linux names HID devices `<Manufacturer> <Product>` ("BY Tech Gaming Keyboard"),
-   while Windows reports only the product ("Gaming Keyboard"). AULA Hub matches exact
-   names, so it silently ignored the keyboard. The fix strips the prefix. AULA's
-   web driver has the same issue in Chrome on Linux.
+Only version **1.1.22** works (see [Why 1.1.22](docs/TECHNICAL.md#why-1122-and-not-223)).
+AULA's website now offers a newer version, so you may have to ask AULA support or
+find an old copy. The install script checks that it's the right file, so a wrong
+one does no harm.
 
-2. **Firmware layout** ([`patches/apply.py`](patches/apply.py)). Before reading or
-   writing lighting, the SDK looks for an `ff ff` marker in front of the per-mode
-   lighting table. This keyboard's firmware has `80 f0` there instead. The patch
-   accepts `80 f0` **only** at that exact position (profile offset 56). Every other
-   layout behaves as before.
+### Step 3: Download this project
 
-3. **Value ranges**. The app's sliders go up to 20, but this keyboard stores
-   brightness 0–9 and speed 0–4. The sliders are limited to those ranges, so the app
-   only writes values the keyboard also produces itself through its Fn keys.
+```sh
+cd ~/Downloads && curl -L https://github.com/Gunerner/aula-hub-linux/archive/refs/heads/main.tar.gz | tar xz
+```
 
-### Profile layout (feature report 6, read command `0x84`, 128 bytes)
+### Step 4: Install
 
-Found by changing settings with the keyboard's own Fn keys and diffing the
-profile read-only before anything was written:
+```sh
+cd ~/Downloads/aula-hub-linux-main && ./install.sh ~/Downloads/"Aula Hub Setup 1.1.22.exe" --system
+```
 
-| Offset | Meaning |
-|---|---|
-| 10 | Current lighting mode |
-| 56–57 | `80 f0` marker (the app expects `ff ff`) |
-| 58 + (mode − 1) × 2 | Brightness of that mode (0–9) |
-| 59 + (mode − 1) × 2 | Speed (high nibble, 0–4), color type (low nibble) |
-| 126–127 | `5a a5` trailer |
+This takes a minute or two. On Ubuntu, Debian and Fedora it downloads Electron
+(about 110 MB, the engine the app runs on). At the end it asks for your password once,
+to let your user talk to the keyboard. When you see **Done!**, it's installed.
 
-Known quirk: the app only writes color type 0 or 7, while the keyboard also uses
-2, 4, 5 and 6. Editing an effect in the app can therefore change its colors. This is
-harmless and can be reset from the keyboard.
+### Step 5: Open it
 
-## Why 1.1.22
+Find **AULA Hub** in your app menu. Make sure the keyboard is plugged in **with the cable**.
 
-AULA Hub 2.2.3 (October 2026) has the same firmware-layout problem, but its code is
-heavily obfuscated, so the patches haven't been ported. 1.1.22's SDK is readable, and
-each patch is a single exact match that fails loudly if anything differs.
+You can now delete the `aula-hub-linux-main` folder from Downloads.
+
+---
+
+## Important: stay safe
+
+- **Never use the firmware / version update page** in the app. This project was only
+  tested for settings, never for firmware.
+- The app runs **offline**, so it can't download firmware or updates by itself.
+- Not tested yet: custom/per-key lighting, the color picker, key remapping, macros
+  and performance settings. Try them at your own risk.
+- If an effect's colors look different after changing it in the app, that's a known
+  quirk. Set it back with the keyboard's own Fn shortcuts.
+
+## Problems?
+
+**The app says "no device"**
+- Use the USB cable, and set the keyboard to wired mode if it has a mode switch.
+- Unplug and replug the keyboard, then fully quit the app (right-click its tray
+  icon → Quit) and open it again.
+- Make sure you ran Step 4 with `--system` at the end.
+- Run `lsusb`. If you don't see `258a:010c`, your keyboard is a different model and
+  isn't supported yet.
+
+**The app doesn't open**
+- Start it from a terminal so you can see the error: type `aula-hub` and press Enter.
+- If it says the offline sandbox isn't allowed: on Ubuntu 24.04+ make sure you used
+  `--system`. Otherwise, start it with `AULA_ONLINE=1 aula-hub`, and stay away from
+  the firmware page.
+
+**`aula-hub: command not found`**: log out and back in once. The app menu entry
+works either way.
+
+**Something else**: open an [issue](https://github.com/Gunerner/aula-hub-linux/issues)
+and paste what `aula-hub` prints in a terminal.
+
+## Uninstall
+
+```sh
+cd ~/Downloads/aula-hub-linux-main && ./uninstall.sh
+```
+(Download the project again with Step 3 if you deleted the folder.) It tells you the
+command to remove the system settings too.
+
+## For the curious
+
+How it works, what the patches change and the keyboard's settings layout:
+[docs/TECHNICAL.md](docs/TECHNICAL.md).
 
 ## License
 
-The scripts and patches in this repository are MIT licensed (see [LICENSE](LICENSE)).
-AULA Hub itself is proprietary software owned by AULA. It is not included here and
-not covered by this license.
+The scripts and patches here are MIT licensed ([LICENSE](LICENSE)). AULA Hub is
+proprietary software owned by AULA. It is not included here and not covered by
+this license.

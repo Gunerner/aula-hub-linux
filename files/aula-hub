@@ -1,11 +1,29 @@
 #!/bin/bash
-# AULA Hub on Linux (unofficial). Runs the patched app on the system Electron 40.
+# AULA Hub on Linux (unofficial launcher).
 # Offline by default: a private network namespace means the app can't download
 # firmware or remote UI updates. AULA_ONLINE=1 aula-hub allows network.
-APP="${AULA_HUB_DIR:-$HOME/.local/share/aula-hub-linux}/app"
-ELECTRON=$(command -v electron40) || { echo "aula-hub: electron40 not found" >&2; exit 1; }
+DATA_DIR="@DATA_DIR@"
+APP="$DATA_DIR/app"
+
+if [ -x "$DATA_DIR/electron/electron" ]; then
+    ELECTRON="$DATA_DIR/electron/electron"
+elif command -v electron40 >/dev/null; then
+    ELECTRON=$(command -v electron40)
+else
+    echo "aula-hub: Electron 40 not found. Re-run install.sh." >&2
+    exit 1
+fi
+
 FLAGS=(--ozone-platform-hint=auto)
+
 if [ "${AULA_ONLINE:-0}" = 1 ]; then
     exec "$ELECTRON" "${FLAGS[@]}" "$APP" "$@"
+fi
+
+if ! unshare --user --map-current-user --net -- true 2>/dev/null; then
+    echo "aula-hub: this system doesn't allow the offline sandbox (unprivileged user namespaces)." >&2
+    echo "Start it with network instead, and stay away from the firmware page:" >&2
+    echo "  AULA_ONLINE=1 aula-hub" >&2
+    exit 1
 fi
 exec unshare --user --map-current-user --net -- "$ELECTRON" "${FLAGS[@]}" "$APP" "$@"

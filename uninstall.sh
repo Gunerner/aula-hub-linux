@@ -7,7 +7,13 @@ APPS_DIR=${APPS_DIR:-$HOME/.local/share/applications}
 
 rm -rf "$DATA_DIR"
 rm -f "$BIN_DIR/aula-hub" "$APPS_DIR/aula-hub.desktop"
-echo "Removed app, launcher and menu entry."
-if [ -f /etc/udev/rules.d/70-aula-hub.rules ]; then
-    echo "To remove device access too: sudo rm /etc/udev/rules.d/70-aula-hub.rules && sudo udevadm control --reload"
+echo "Removed the app, launcher and menu entry."
+
+SYSTEM_FILES=()
+[ -f /etc/udev/rules.d/70-aula-hub.rules ] && SYSTEM_FILES+=(/etc/udev/rules.d/70-aula-hub.rules)
+[ -f /etc/apparmor.d/aula-hub-linux ] && SYSTEM_FILES+=(/etc/apparmor.d/aula-hub-linux)
+if [ ${#SYSTEM_FILES[@]} -gt 0 ]; then
+    echo "To also remove the system settings, run:"
+    [ -f /etc/apparmor.d/aula-hub-linux ] && echo "  sudo apparmor_parser -R /etc/apparmor.d/aula-hub-linux"
+    echo "  sudo rm ${SYSTEM_FILES[*]} && sudo udevadm control --reload"
 fi
