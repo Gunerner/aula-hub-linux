@@ -34,10 +34,42 @@ RULES = [
         "maxLightly:21,maxSpeed:21",
         "maxLightly:10,maxSpeed:5",
     ),
+    # Firmware block: every known firmware entry point calls
+    # window.__aulaHubLinuxBlockFirmware (patches/firmware-block.js) instead.
+    # Supported keyboard's version page: the update button would download
+    # AULA's Windows firmware updater, and the page asks AULA's server for the
+    # latest firmware. Both are disabled.
+    (
+        "dist/assets/version-BBHkWJxs.js",
+        "async goUpdate(){m(this.activeData.downloadUrl)}",
+        "async goUpdate(){window.__aulaHubLinuxBlockFirmware()}",
+    ),
+    (
+        "dist/assets/version-BBHkWJxs.js",
+        "getDownloadUrl(){var e;const t=(e=this.store.deviceInfo)==null?void 0:e.deviceId;"
+        "g(t).then(s=>{this.activeData.latestVersion=s.version,this.activeData.downloadUrl=n+s.fileName}).catch(s=>{})}",
+        "getDownloadUrl(){}",
+    ),
+    # In-app firmware writes used by other AULA devices. Both pages catch the
+    # error and reset their progress state.
+    (
+        "dist/assets/version-BFz3ZYcs.js",
+        "s.upgradeFirmware(v[0],t,r,",
+        "window.__aulaHubLinuxBlockFirmware(v[0],t,r,",
+    ),
+    (
+        "dist/assets/version-Biz-fiVp.js",
+        "await this.ServiceDevice.deviceFwUpgrade(p)",
+        "await window.__aulaHubLinuxBlockFirmware(p)",
+    ),
     (
         "dist/index.html",
         "<head>",
-        "<head>\n<script>\n" + (HERE / "hid-name-fix.js").read_text(encoding="utf-8") + "</script>",
+        "<head>\n"
+        + "".join(
+            "<script>\n" + (HERE / name).read_text(encoding="utf-8") + "</script>\n"
+            for name in ("firmware-block.js", "hid-name-fix.js")
+        ),
     ),
 ]
 

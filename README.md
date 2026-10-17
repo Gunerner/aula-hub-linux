@@ -124,9 +124,12 @@ You can now delete the `aula-hub-linux-main` folder from Downloads.
 
 ## Important: stay safe
 
-- **Never use the firmware / version update page** in the app. This project was only
-  tested for settings, never for firmware.
-- The app runs **offline**, so it can't download firmware or updates by itself.
+- **Firmware updates are blocked.** The update button on the version page shows a
+  "disabled" message instead. This project was only tested for settings, never for
+  firmware, so please don't try to work around it. Use AULA's official Windows
+  software for firmware.
+- The app also runs **offline** as a second safety layer, so it can't download
+  firmware or updates by itself.
 - Features marked ⚠️ **Untested** above have not been tried. Use them at your own risk.
 - If an effect's colors look different after changing it in the app, that's a known
   quirk ([details](docs/TECHNICAL.md#known-quirk-color-type)). Set it back with the

@@ -82,6 +82,31 @@ and then checks the interface.
    `maxSpeed:21`). The keyboard stores brightness 0–9 and speed 0–4, as measured
    with its own Fn keys. The sliders are limited to 10 and 5 steps.
 
+4. **Firmware block** ([`firmware-block.js`](../patches/firmware-block.js)). Every
+   firmware entry point found in 1.1.22 now calls `window.__aulaHubLinuxBlockFirmware`,
+   which shows "Firmware updates are disabled" and throws:
+
+   | File | Original call | What it did |
+   |---|---|---|
+   | `version-BBHkWJxs.js` (this keyboard's version page) | `goUpdate()` → `downloadFile(...)` | Downloaded AULA's Windows firmware updater |
+   | `version-BBHkWJxs.js` | `getDownloadUrl()` → `/user/EXE/getFile/<id>` | Asked AULA's server for the latest firmware (now a no-op) |
+   | `version-BFz3ZYcs.js` (other devices) | `ServiceDevice.upgradeFirmware(...)` | In-app firmware write |
+   | `version-Biz-fiVp.js` (other devices) | `ServiceDevice.deviceFwUpgrade(...)` | In-app firmware write |
+
+   Both in-app pages catch the error and reset their progress, so no firmware data
+   reaches the device code. The blocker is defined read-only, before the app's own
+   scripts load.
+
+   **Limits:**
+   - The "Version" tab is still visible (it appears in several near-identical menu
+     arrays, so hiding it can't be a single-match rule). Only its update action is
+     disabled. The factory-reset button on that page is not firmware and still works.
+   - The search was by readable names. The SDK code behind these calls (`fwUpgrade`
+     and bootloader logic in `index-npIkQlTa.js`, `enterBootloader` in
+     `info-NelRB_nl.js`, `upgradeFirmware` in the obfuscated `info-KZTAsXUu.js`) had
+     no other callers that could be found, but obfuscated code can't be fully ruled out.
+     Offline mode is the second safety layer.
+
 ## Profile layout
 
 Feature report 6. The app sends `84 00 00 01 00 80 00` (padded to 519 bytes); the
@@ -166,4 +191,4 @@ single-match replacement.
 
 - Headset features: they depend on a Windows-only C-Media service (`HeadsetService.exe`).
 - Game integration: a Windows Python helper (`aula-gsi.exe`).
-- Firmware updates: intentionally blocked by offline mode. Don't try them.
+- Firmware updates: intentionally blocked, by patch (see above) and by offline mode.
