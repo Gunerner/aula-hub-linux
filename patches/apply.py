@@ -53,6 +53,9 @@ def main() -> int:
         path = root / rel
         text = contents.get(rel)
         if text is None:
+            if not path.is_file():
+                print(f"error: {rel} not found; is this AULA Hub 1.1.22?", file=sys.stderr)
+                return 1
             text = path.read_text(encoding="utf-8")
         count = text.count(old)
         if count != 1:

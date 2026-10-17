@@ -6,7 +6,9 @@ set -euo pipefail
 
 INSTALLER_SHA256=3c03c0a1e53c72ad6ab95e7749dc40f62a6f18e40d7a07d993c5f2bd7d3b77c6
 ELECTRON_VERSION=40.10.4   # the version AULA Hub 1.1.22 was built with
-ELECTRON_URL=https://github.com/electron/electron/releases/download/v$ELECTRON_VERSION
+ELECTRON_ZIP=electron-v$ELECTRON_VERSION-linux-x64.zip
+ELECTRON_SHA256=64b25d8284417fd5c7e2273d7c8f2556f8f98871382e3d0e64f38bf764d0c616
+ELECTRON_URL=https://github.com/electron/electron/releases/download/v$ELECTRON_VERSION/$ELECTRON_ZIP
 
 REPO=$(cd "$(dirname "$0")" && pwd)
 DATA_DIR=${AULA_HUB_DIR:-$HOME/.local/share/aula-hub-linux}
@@ -26,7 +28,7 @@ for arg in "$@"; do
     esac
 done
 [ -n "$INSTALLER" ] || die "Tell me where the AULA installer is, for example:
-  ./install.sh ~/Downloads/\"Aula Hub Setup 1.1.22.exe\" --udev"
+  ./install.sh ~/Downloads/\"AULA HUB/Aula Hub Setup 1.1.22.exe\" --system"
 [ -f "$INSTALLER" ] || die "File not found: $INSTALLER"
 
 SEVENZIP=$(command -v 7z || command -v 7zz || true)
@@ -60,14 +62,16 @@ elif [ "$(cat "$DATA_DIR/electron/version" 2>/dev/null)" = "$ELECTRON_VERSION" ]
 else
     step "Downloading Electron $ELECTRON_VERSION (about 110 MB)"
     command -v curl >/dev/null || die "curl is missing. Install it first (see README, step 1)."
-    zip=electron-v$ELECTRON_VERSION-linux-x64.zip
-    curl -fL --progress-bar -o "$WORK/$zip" "$ELECTRON_URL/$zip" || die "Download failed. Check your internet connection."
-    curl -fsSL -o "$WORK/SHASUMS256.txt" "$ELECTRON_URL/SHASUMS256.txt" || die "Download failed. Check your internet connection."
-    (cd "$WORK" && grep " \*$zip\$" SHASUMS256.txt | sed 's/ \*/  /' | sha256sum -c --quiet -) \
-        || die "Electron download is corrupted (checksum mismatch). Try again."
+    curl -fL --progress-bar -o "$WORK/$ELECTRON_ZIP" "$ELECTRON_URL" || die "Download failed. Check your internet connection."
+    # The expected hash is pinned here, not fetched, so a changed release is rejected.
+    echo "$ELECTRON_SHA256  $WORK/$ELECTRON_ZIP" | sha256sum -c --quiet - >/dev/null 2>&1 \
+        || die "Electron download doesn't match the expected checksum. Nothing was installed. Try again."
+    # Unpack into the temp folder first, so a failure never leaves a half-installed Electron.
+    "$SEVENZIP" x -y -o"$WORK/electron" "$WORK/$ELECTRON_ZIP" >/dev/null
+    chmod +x "$WORK/electron/electron" "$WORK/electron/chrome_crashpad_handler"
+    [ "$(cat "$WORK/electron/version")" = "$ELECTRON_VERSION" ] || die "Unexpected Electron version in the download."
     rm -rf "$DATA_DIR/electron"
-    "$SEVENZIP" x -y -o"$DATA_DIR/electron" "$WORK/$zip" >/dev/null
-    chmod +x "$DATA_DIR/electron/electron" "$DATA_DIR/electron/chrome_crashpad_handler" 2>/dev/null || true
+    mv "$WORK/electron" "$DATA_DIR/electron"
 fi
 
 step "Installing to $DATA_DIR"
