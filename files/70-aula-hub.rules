@@ -1,0 +1,5 @@
+# aula-hub-linux: give the logged-in user WebHID access to these devices only.
+# BY Tech Gaming Keyboard (AULA F75 / F87 family, wired)
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="258a", ATTRS{idProduct}=="010c", TAG+="uaccess"
+# Compx 2.4G Wireless Receiver
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3554", ATTRS{idProduct}=="fa09", TAG+="uaccess"
