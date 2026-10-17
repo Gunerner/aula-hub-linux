@@ -26,8 +26,8 @@ and run `lsusb`. You should see a line with `258a:010c` in it.
 | Lighting effect | ✅ Works (verified on the keyboard) |
 | Brightness | ✅ Works (verified on the keyboard) |
 | Effect speed | ✅ Works (verified on the keyboard) |
+| Color picker | ✅ Works (verified on the keyboard) |
 | Per-key / custom lighting | ⚠️ Untested |
-| Color picker | ⚠️ Untested |
 | Key remapping | ⚠️ Untested |
 | Macros | ⚠️ Untested |
 | Performance settings | ⚠️ Untested |
