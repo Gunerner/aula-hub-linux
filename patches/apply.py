@@ -50,8 +50,17 @@ RULES = [
         "g(t).then(s=>{this.activeData.latestVersion=s.version,this.activeData.downloadUrl=n+s.fileName}).catch(s=>{})}",
         "getDownloadUrl(){}",
     ),
-    # In-app firmware writes used by other AULA devices. Both pages catch the
-    # error and reset their progress state.
+    # In-app firmware writes used by other AULA devices. These are all the pages
+    # that set store.isBinUpdating (the app's "firmware update running" flag).
+    # The blocker runs *before* that flag and the progress step are set, so the
+    # app never gets stuck in an "updating" state; the firmware call itself is
+    # replaced too, as a second layer.
+    (
+        "dist/assets/version-BFz3ZYcs.js",
+        "this.store.isBinUpdating=!0,this.activeData.binStep=2,this.activeData.binProgress=0,await((s=this.ServiceDevice)",
+        "window.__aulaHubLinuxBlockFirmware(),"
+        "this.store.isBinUpdating=!0,this.activeData.binStep=2,this.activeData.binProgress=0,await((s=this.ServiceDevice)",
+    ),
     (
         "dist/assets/version-BFz3ZYcs.js",
         "s.upgradeFirmware(v[0],t,r,",
@@ -59,8 +68,42 @@ RULES = [
     ),
     (
         "dist/assets/version-Biz-fiVp.js",
+        "this.store.isBinUpdating=!0,this.activeData.binStep=2",
+        "window.__aulaHubLinuxBlockFirmware(),this.store.isBinUpdating=!0,this.activeData.binStep=2",
+    ),
+    (
+        "dist/assets/version-Biz-fiVp.js",
         "await this.ServiceDevice.deviceFwUpgrade(p)",
         "await window.__aulaHubLinuxBlockFirmware(p)",
+    ),
+    # WIN 60 / AG60 page: puts the device into bootloader mode (appToBoot, in a
+    # retry loop) and then writes. Block before the loop is ever reached.
+    (
+        "dist/assets/version-BaxvFQW7.js",
+        "this.activeData.step=2;let e;const t=this.activeData.activeBinBlob[0].blobFile",
+        "window.__aulaHubLinuxBlockFirmware();"
+        "this.activeData.step=2;let e;const t=this.activeData.activeBinBlob[0].blobFile",
+    ),
+    (
+        "dist/assets/version-BaxvFQW7.js",
+        "o.upgrade(s,",
+        "window.__aulaHubLinuxBlockFirmware(s,",
+    ),
+    (
+        "dist/assets/version-CZpI-VxG.js",
+        "i.updateBin(a,",
+        "window.__aulaHubLinuxBlockFirmware(a,",
+    ),
+    (
+        "dist/assets/version-CZpI-VxG.js",
+        "this.store.isBinUpdating=!0,await((i=this.ServiceDevice)==null?void 0:",
+        "window.__aulaHubLinuxBlockFirmware(),this.store.isBinUpdating=!0,await((i=this.ServiceDevice)==null?void 0:",
+    ),
+    # V1 mouse page: downloads AULA's external updater zip, like this keyboard's page.
+    (
+        "dist/assets/version-CrZzUj4k.js",
+        "async openBin(){",
+        "async openBin(){window.__aulaHubLinuxBlockFirmware();",
     ),
     (
         "dist/index.html",

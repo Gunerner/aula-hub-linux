@@ -94,16 +94,22 @@ and then checks the interface.
    | `version-BBHkWJxs.js` | `getDownloadUrl()` → `/user/EXE/getFile/<id>` | Asked AULA's server for the latest firmware (now a no-op) |
    | `version-BFz3ZYcs.js` (other devices) | `ServiceDevice.upgradeFirmware(...)` | In-app firmware write |
    | `version-Biz-fiVp.js` (other devices) | `ServiceDevice.deviceFwUpgrade(...)` | In-app firmware write |
+   | `version-BaxvFQW7.js` (WIN 60 / AG60) | `appToBoot()` then `upgrade(...)` | Bootloader mode, then firmware write |
+   | `version-CZpI-VxG.js` (other devices) | `ServiceDevice.updateBin(...)` | In-app firmware write |
+   | `version-CrZzUj4k.js` (V1 mouse) | `openBin()` → `downloadFile(...Update.zip)` | Downloaded AULA's external updater |
 
-   Both in-app pages catch the error and reset their progress, so no firmware data
-   reaches the device code. The blocker is defined read-only, before the app's own
-   scripts load.
+   The four in-app pages are exactly the ones that set `store.isBinUpdating` (the
+   app's "firmware update running" flag). The blocker runs *before* that flag and
+   before the bootloader step, so no firmware data reaches the device code and the
+   app never gets stuck in an "updating" state. The firmware calls themselves are
+   replaced too, as a second layer. The blocker is defined read-only, before the
+   app's own scripts load.
 
    **Limits:**
    - The "Version" tab is still visible (it appears in several near-identical menu
      arrays, so hiding it can't be a single-match rule). Only its update action is
      disabled. The factory-reset button on that page is not firmware and still works.
-   - The search was by readable names. The SDK code behind these calls (`fwUpgrade`
+   - The search was by readable names and by the `isBinUpdating` flag. The SDK code behind these calls (`fwUpgrade`
      and bootloader logic in `index-npIkQlTa.js`, `enterBootloader` in
      `info-NelRB_nl.js`, `upgradeFirmware` in the obfuscated `info-KZTAsXUu.js`) had
      no other callers that could be found, but obfuscated code can't be fully ruled out.
