@@ -13,15 +13,25 @@ find the keyboard ([details](docs/TECHNICAL.md#the-patches)).
 
 ## Will it work for me?
 
-It's tested with this hardware:
+It's tested with one keyboard: an AULA F75-family keyboard, **wired**, which Linux
+calls `BY Tech Gaming Keyboard` (USB ID `258a:010c`). To check yours, open a terminal
+and run `lsusb`. You should see a line with `258a:010c` in it.
 
-| Device | What Linux calls it | Status |
-|---|---|---|
-| AULA keyboard (F75 family), **wired** | `BY Tech Gaming Keyboard` (`258a:010c`) | ✅ Lighting effect, brightness and speed work |
-| AULA 2.4G USB receiver | `Compx 2.4G Wireless Receiver` (`3554:fa09`) | Detected, not tested yet |
+| Feature | Status |
+|---|---|
+| Lighting effect | ✅ Works (verified on the keyboard) |
+| Brightness | ✅ Works (verified on the keyboard) |
+| Effect speed | ✅ Works (verified on the keyboard) |
+| Per-key / custom lighting | ⚠️ Untested |
+| Color picker | ⚠️ Untested |
+| Key remapping | ⚠️ Untested |
+| Macros | ⚠️ Untested |
+| Performance settings | ⚠️ Untested |
+| 2.4G wireless receiver (`3554:fa09`) | ⚠️ Untested (the app detects the receiver, but nothing was tried through it) |
+| Firmware updates | 🚫 Blocked on purpose |
+| Headset, game integration | ❌ Windows-only, don't work |
 
-To check your keyboard, open a terminal and run `lsusb`. You should see a line with
-`258a:010c` in it.
+"Untested" means nobody has tried it on Linux yet. It may work, or it may not.
 
 Installs tested on Arch / CachyOS (used daily), Debian 12, Ubuntu 24.04 and Fedora 41.
 It should work on other distros from those families too: Linux Mint, Pop!_OS, Manjaro,
@@ -113,10 +123,10 @@ You can now delete the `aula-hub-linux-main` folder from Downloads.
 - **Never use the firmware / version update page** in the app. This project was only
   tested for settings, never for firmware.
 - The app runs **offline**, so it can't download firmware or updates by itself.
-- Not tested yet: custom/per-key lighting, the color picker, key remapping, macros
-  and performance settings. Try them at your own risk.
+- Features marked ⚠️ **Untested** above have not been tried. Use them at your own risk.
 - If an effect's colors look different after changing it in the app, that's a known
-  quirk. Set it back with the keyboard's own Fn shortcuts.
+  quirk ([details](docs/TECHNICAL.md#known-quirk-color-type)). Set it back with the
+  keyboard's own Fn shortcuts.
 
 ## Problems?
 
@@ -151,7 +161,8 @@ command to remove the system settings too.
 ## For the curious
 
 How it works, what the patches change and the keyboard's settings layout:
-[docs/TECHNICAL.md](docs/TECHNICAL.md).
+[docs/TECHNICAL.md](docs/TECHNICAL.md). Want to support another keyboard or a newer
+AULA Hub? See [porting to a new version](docs/TECHNICAL.md#contributing-porting-to-a-new-aula-hub-version).
 
 ## License
 
