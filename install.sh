@@ -122,6 +122,6 @@ fi
 echo
 echo "============================================================"
 echo " Done! Open \"AULA Hub\" from your app menu, or run: aula-hub"
-echo " Never use the firmware / version page."
+echo " Firmware updates are blocked; please don't work around that."
 echo "============================================================"
 case ":$PATH:" in *":$BIN_DIR:"*) ;; *) echo "(The 'aula-hub' command works after you log out and back in.)";; esac

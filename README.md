@@ -147,9 +147,12 @@ You can now delete the `aula-hub-linux-main` folder from Downloads.
 
 **The app doesn't open**
 - Start it from a terminal so you can see the error: type `aula-hub` and press Enter.
-- If it says the offline sandbox isn't allowed: on Ubuntu 24.04+ make sure you used
-  `--system`. Otherwise, start it with `AULA_ONLINE=1 aula-hub`, and stay away from
-  the firmware page.
+- If it says the offline sandbox isn't allowed: on Ubuntu 24.04+ (and Mint 22+,
+  Pop!_OS 24+), re-run the install command from Step 4. It must end with `--system`.
+- **Last resort, for debugging only:** `AULA_ONLINE=1 aula-hub` starts the app
+  *without* the network sandbox. It prints a warning: the app can then reach AULA's
+  servers, and the firmware patch is the only thing stopping firmware updates. Use
+  it only to find out why the app won't start, then go back to plain `aula-hub`.
 
 **`aula-hub: command not found`**: log out and back in once. The app menu entry
 works either way.

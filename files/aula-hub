@@ -17,13 +17,22 @@ fi
 FLAGS=(--ozone-platform-hint=auto)
 
 if [ "${AULA_ONLINE:-0}" = 1 ]; then
+    cat >&2 <<'EOF'
+aula-hub: WARNING: AULA_ONLINE=1 turns OFF the network sandbox.
+  The app can now contact AULA's servers. Firmware updates are still blocked by
+  patch, but that patch is then the only safety layer. Use this only to debug
+  startup problems, and start the app normally (plain "aula-hub") afterwards.
+EOF
     exec "$ELECTRON" "${FLAGS[@]}" "$APP" "$@"
 fi
 
 if ! unshare --user --map-current-user --net -- true 2>/dev/null; then
-    echo "aula-hub: this system doesn't allow the offline sandbox (unprivileged user namespaces)." >&2
-    echo "Start it with network instead, and stay away from the firmware page:" >&2
-    echo "  AULA_ONLINE=1 aula-hub" >&2
+    cat >&2 <<'EOF'
+aula-hub: this system doesn't allow the offline sandbox (unprivileged user namespaces).
+  On Ubuntu 24.04+ / Mint 22+ / Pop!_OS 24+: re-run install.sh with --system.
+  To start it anyway without the sandbox (see the README first):
+    AULA_ONLINE=1 aula-hub
+EOF
     exit 1
 fi
 exec unshare --user --map-current-user --net -- "$ELECTRON" "${FLAGS[@]}" "$APP" "$@"

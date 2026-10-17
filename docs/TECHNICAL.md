@@ -16,7 +16,9 @@ so it can run on Linux's Electron. `install.sh` does the following:
 
 The launcher runs the app with `unshare --user --map-current-user --net`, a private
 network namespace with no interfaces. The app cannot reach the internet, so it
-cannot download firmware or UI hot-updates. `AULA_ONLINE=1` skips this.
+cannot download firmware or UI hot-updates. `AULA_ONLINE=1` skips this (for
+debugging startup problems only; the launcher prints a warning), leaving the
+firmware patch as the only safety layer.
 
 On Ubuntu 24.04+, `kernel.apparmor_restrict_unprivileged_userns=1` blocks user
 namespaces. `--system` then installs an AppArmor profile that allows `userns` for the
