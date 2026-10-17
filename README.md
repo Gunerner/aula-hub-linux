@@ -3,6 +3,10 @@
 Use the official **AULA Hub** keyboard app on Linux to change your keyboard's lighting
 effect, brightness and speed. No Windows, no Wine and no virtual machine needed.
 
+<!-- SCREENSHOT: save a screenshot as docs/screenshot.png, then remove these comment markers:
+![AULA Hub running on Linux](docs/screenshot.png)
+-->
+
 > ⚠️ **Unofficial project.** Not made or supported by AULA. It does **not** include
 > AULA's app: you supply the official installer, and this project adapts it for Linux
 > on your own computer. Use at your own risk.
