@@ -7,6 +7,10 @@ effect, brightness and speed. No Windows, no Wine and no virtual machine needed.
 > AULA's app: you supply the official installer, and this project adapts it for Linux
 > on your own computer. Use at your own risk.
 
+**Why not AULA's web driver ([hub.aulacn.com](https://hub.aulacn.com))?** This works
+offline, and the web driver has the same device-name bug on Linux, so it doesn't
+find the keyboard ([details](docs/TECHNICAL.md#the-patches)).
+
 ## Will it work for me?
 
 It's tested with this hardware:
@@ -54,15 +58,31 @@ sudo dnf install -y p7zip p7zip-plugins python3 curl
 sudo pacman -S --needed 7zip python curl electron40
 ```
 
-### Step 2: Get the AULA Hub 1.1.22 installer
+### Step 2: Download AULA Hub from AULA's website
 
-You need the Windows installer file **`Aula Hub Setup 1.1.22.exe`**. Put it in your
-**Downloads** folder.
+1. Go to <https://www.aulastar.com/aula-hub/> and click **Download AULA HUB**.
+   You get a file called **`AULA HUB.zip`**. (Direct link:
+   <https://www.aulastar.com/AULA%20HUB.zip>)
+2. Extract it into your **Downloads** folder: right-click → *Extract Here*, or
+   in a terminal:
+   ```sh
+   cd ~/Downloads && python3 -m zipfile -e "AULA HUB.zip" .
+   ```
+3. You now have the installer at
+   **`~/Downloads/AULA HUB/Aula Hub Setup 1.1.22.exe`**.
 
-Only version **1.1.22** works (see [Why 1.1.22](docs/TECHNICAL.md#why-1122-and-not-223)).
-AULA's website now offers a newer version, so you may have to ask AULA support or
-find an old copy. The install script checks that it's the right file, so a wrong
-one does no harm.
+Only this exact installer is supported. AULA can replace the file on its website at
+any time, so the install script checks its SHA-256 fingerprint before using it:
+
+```
+3c03c0a1e53c72ad6ab95e7749dc40f62a6f18e40d7a07d993c5f2bd7d3b77c6
+```
+
+You can check it yourself with `sha256sum ~/Downloads/"AULA HUB/Aula Hub Setup 1.1.22.exe"`.
+If the script says the checksum doesn't match, AULA has published a different
+version. Please [open an issue](https://github.com/Gunerner/aula-hub-linux/issues)
+and include the version number (on Windows: right-click the .exe → *Properties* →
+*Details*). A wrong file does no harm; the script stops before using it.
 
 ### Step 3: Download this project
 
@@ -73,7 +93,7 @@ cd ~/Downloads && curl -L https://github.com/Gunerner/aula-hub-linux/archive/ref
 ### Step 4: Install
 
 ```sh
-cd ~/Downloads/aula-hub-linux-main && ./install.sh ~/Downloads/"Aula Hub Setup 1.1.22.exe" --system
+cd ~/Downloads/aula-hub-linux-main && ./install.sh ~/Downloads/"AULA HUB/Aula Hub Setup 1.1.22.exe" --system
 ```
 
 This takes a minute or two. On Ubuntu, Debian and Fedora it downloads Electron
